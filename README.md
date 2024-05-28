@@ -1,6 +1,9 @@
 # PlagiarismDetector
 Este repositorio contiene un proyecto de detección de plagio de código fuente. Utiliza técnicas avanzadas de análisis de texto y algoritmos de aprendizaje automático para identificar similitudes y posibles casos de plagio en códigos de programación.
 
+# Data 
+Esta carpeta contiene el dataset conplag_version_2 y fire14-source-code-training-dataset
+
 
 ### Bibliografia
 [1] M. El Mahdaoui, N. Khaldi, and M. Bahaj, "An Automated System for Source Code Plagiarism Detection in Programming Assignments," 2016 11th International Conference on Intelligent Systems: Theories and Applications (SITA), 2016, pp. 1-6, doi: 10.1109/SITA.2016.7877421.
