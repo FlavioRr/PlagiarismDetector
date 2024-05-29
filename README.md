@@ -1,6 +1,32 @@
 # PlagiarismDetector
 Este repositorio contiene un proyecto de detección de plagio de código fuente. Utiliza técnicas avanzadas de análisis de texto y algoritmos de aprendizaje automático para identificar similitudes y posibles casos de plagio en códigos de programación.
 
+# Background
+La detección de plagio ha sido un gran reto para las academias. A medida que la tecnología avanza y después de la pandemia de COVID-19, el plagio se ha vuelto un gran foco de atención para las universidades. Actualmente ya se cuentan con diferentes modelos y métodos que se aprobaron y se encunetrarn en producción. [2]
+
+## Tipos de clon de código
+En este proyecto nos enfocaremos a una sección del plagio, el plagio de código. El plagio de código se divide en 4 diferentes tipos:
+
+![image](https://github.com/FlavioRr/PlagiarismDetector/assets/88801753/f2f901eb-e577-412d-b63f-d29446a3cb12)
+*Tabla 1. Tipos de clones de código [2]*
+
+Como podemos ver, estas clasificaciones se van desde una copia identica del código sin tomar en cuenta los comentarios (tipo I), hasta una copia de la funcionalidad del código, en la cual el código puede llegar a ser totalmente diferente (tipo IV).
+
+## Proceso general de un detector de plagio
+
+Existen diferentes técnicas de detección de plagio:
+
+* basado en texto
+* basado en tokens
+* basado en árboles
+* programa de dependencia en gráfos (PDG)
+
+Aunque cada técnica tienen diferencias en el proceso de detección, todas comparten un mismo proceso:
+
+1. Preprocesado
+2. Transformación
+3. Detección
+
 # Data 
 Esta carpeta contiene el dataset conplag_version_2 y fire14-source-code-training-dataset
 
