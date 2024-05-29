@@ -8,7 +8,7 @@ La detección de plagio ha sido un gran reto para las academias. A medida que la
 En este proyecto nos enfocaremos a una sección del plagio, el plagio de código. El plagio de código se divide en 4 diferentes tipos:
 
 ![image](https://github.com/FlavioRr/PlagiarismDetector/assets/88801753/f2f901eb-e577-412d-b63f-d29446a3cb12)
-*Tabla 1. Tipos de clones de código [2]*
+*Tabla 1. Tipos de clones de código* [2]
 
 Como podemos ver, estas clasificaciones se van desde una copia identica del código sin tomar en cuenta los comentarios (tipo I), hasta una copia de la funcionalidad del código, en la cual el código puede llegar a ser totalmente diferente (tipo IV).
 
