@@ -24,11 +24,15 @@ Existen diferentes técnicas de detección de plagio:
 ![image](https://github.com/FlavioRr/PlagiarismDetector/assets/88801753/a571a28e-2cf7-4176-ae48-503a43de0f39)
 *Tabla 2. Características de técnicas de reconocimiento de similitud en código* [2]
 
+Para este proyecto utilizaremos la técnica basada en tokens. Esto debido a que el dataset con el que estamos trabajando tiene estructuras similares de código, y algunas pequeñas diferencias como nombre de funciones comentarios, formato, puede ser normalizado con esta técnica.
+
 Aunque cada técnica tienen diferencias en el proceso de detección, todas comparten un mismo proceso:
 
 1. Preprocesado
 2. Transformación
 3. Detección
+
+
 
 # Data 
 Esta carpeta contiene el dataset conplag_version_2 y fire14-source-code-training-dataset
