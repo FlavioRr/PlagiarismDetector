@@ -21,6 +21,9 @@ Existen diferentes técnicas de detección de plagio:
 * basado en árboles
 * programa de dependencia en gráfos (PDG)
 
+![image](https://github.com/FlavioRr/PlagiarismDetector/assets/88801753/a571a28e-2cf7-4176-ae48-503a43de0f39)
+*Tabla 2. Características de técnicas de reconocimiento de similitud en código* [2]
+
 Aunque cada técnica tienen diferencias en el proceso de detección, todas comparten un mismo proceso:
 
 1. Preprocesado
