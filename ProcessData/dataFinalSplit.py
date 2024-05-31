@@ -6,7 +6,7 @@ import shutil
 plagio_folder = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\plagio'
 noplag_folder = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\noplag'
 
-data_split_folder = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\data_split'
+data_split_folder = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\data_split'
 
 # Crear carpeta de destino si no existe
 if not os.path.exists(data_split_folder):
@@ -38,28 +38,28 @@ train_size = int(0.7 * total_plagio)
 test_size = int(0.2 * total_plagio)
 valid_size = total_plagio - train_size - test_size
 
-# Mover los archivos de plagio al conjunto de train
+# Copiar los archivos de plagio al conjunto de train
 for file in plagio_files[:train_size]:
-    shutil.move(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'train', 'plagio', file))
+    shutil.copy(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'train', 'plagio', file))
 
-# Mover los archivos de plagio al conjunto de test
+# Copiar los archivos de plagio al conjunto de test
 for file in plagio_files[train_size:train_size + test_size]:
-    shutil.move(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'test', 'plagio', file))
+    shutil.copy(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'test', 'plagio', file))
 
-# Mover los archivos de plagio al conjunto de validation
+# Copiar los archivos de plagio al conjunto de validation
 for file in plagio_files[train_size + test_size:]:
-    shutil.move(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'validation', 'plagio', file))
+    shutil.copy(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'validation', 'plagio', file))
 
-# Mover los archivos de no plagio al conjunto de train
+# Copiar los archivos de no plagio al conjunto de train
 for file in noplag_files[:train_size]:
-    shutil.move(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'train', 'noplag', file))
+    shutil.copy(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'train', 'noplag', file))
 
-# Mover los archivos de no plagio al conjunto de test
+# Copiar los archivos de no plagio al conjunto de test
 for file in noplag_files[train_size:train_size + test_size]:
-    shutil.move(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'test', 'noplag', file))
+    shutil.copy(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'test', 'noplag', file))
 
-# Mover los archivos de no plagio al conjunto de validation
+# Copiar los archivos de no plagio al conjunto de validation
 for file in noplag_files[train_size + test_size:]:
-    shutil.move(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'validation', 'noplag', file))
+    shutil.copy(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'validation', 'noplag', file))
 
 print("Proceso completado.")
