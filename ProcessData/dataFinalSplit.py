@@ -1,65 +1,44 @@
 import os
-import random
 import shutil
+from sklearn.model_selection import train_test_split
 
-# Rutas de las carpetas de origen y destino
-plagio_folder = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\plagio'
-noplag_folder = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\noplag'
+# Paths base
+base_dir = 'C:\\Users\\Flavio Ruvalcaba\\Documents\\Escuela\\Universidad\\8Semestre\\PlagiarismDetector\\finalDataset'
+new_base_dir = 'C:\\Users\\Flavio Ruvalcaba\\Documents\\Escuela\\Universidad\\8Semestre\\PlagiarismDetector\\finalDataset\\split'
 
-data_split_folder = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\data_split'
+# Crear la nueva estructura de directorios
+os.makedirs(new_base_dir, exist_ok=True)
+train_dir = os.path.join(new_base_dir, 'train')
+validation_dir = os.path.join(new_base_dir, 'validation')
+test_dir = os.path.join(new_base_dir, 'test')
 
-# Crear carpeta de destino si no existe
-if not os.path.exists(data_split_folder):
-    os.makedirs(data_split_folder)
+for dir in [train_dir, validation_dir, test_dir]:
+    os.makedirs(os.path.join(dir, 'plagio'), exist_ok=True)
+    os.makedirs(os.path.join(dir, 'noplag'), exist_ok=True)
 
-# Crear subcarpetas para train, test y validation
-for folder in ['train', 'test', 'validation']:
-    folder_path = os.path.join(data_split_folder, folder)
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-    for category in ['plagio', 'noplag']:
-        category_path = os.path.join(folder_path, category)
-        if not os.path.exists(category_path):
-            os.makedirs(category_path)
+# Función para copiar archivos a la nueva estructura
+def copy_files(file_list, source_dir, target_dir):
+    for file in file_list:
+        shutil.copy(os.path.join(source_dir, file), os.path.join(target_dir, file))
 
-# Obtener lista de archivos de plagio y no plagio
-plagio_files = os.listdir(plagio_folder)
-noplag_files = os.listdir(noplag_folder)
+# Leer documentos
+plagio_docs = os.listdir(os.path.join(base_dir, 'plagio'))
+noplag_docs = os.listdir(os.path.join(base_dir, 'noplag'))
 
-# Mezclar los archivos para una selección aleatoria
-random.shuffle(plagio_files)
-random.shuffle(noplag_files)
+# Dividir documentos en train, validation y test
+plagio_train, plagio_temp = train_test_split(plagio_docs, test_size=0.3, random_state=42)
+plagio_val, plagio_test = train_test_split(plagio_temp, test_size=1/3, random_state=42) # 0.3 * 1/3 = 0.1
 
-# Calcular el tamaño de los conjuntos de train, test y validation
-total_plagio = len(plagio_files)
-total_noplag = len(noplag_files)
+noplag_train, noplag_temp = train_test_split(noplag_docs, test_size=0.3, random_state=42)
+noplag_val, noplag_test = train_test_split(noplag_temp, test_size=1/3, random_state=42) # 0.3 * 1/3 = 0.1
 
-train_size = int(0.7 * total_plagio)
-test_size = int(0.2 * total_plagio)
-valid_size = total_plagio - train_size - test_size
+# Copiar los documentos a los directorios correspondientes
+copy_files(plagio_train, os.path.join(base_dir, 'plagio'), os.path.join(train_dir, 'plagio'))
+copy_files(plagio_val, os.path.join(base_dir, 'plagio'), os.path.join(validation_dir, 'plagio'))
+copy_files(plagio_test, os.path.join(base_dir, 'plagio'), os.path.join(test_dir, 'plagio'))
 
-# Copiar los archivos de plagio al conjunto de train
-for file in plagio_files[:train_size]:
-    shutil.copy(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'train', 'plagio', file))
+copy_files(noplag_train, os.path.join(base_dir, 'noplag'), os.path.join(train_dir, 'noplag'))
+copy_files(noplag_val, os.path.join(base_dir, 'noplag'), os.path.join(validation_dir, 'noplag'))
+copy_files(noplag_test, os.path.join(base_dir, 'noplag'), os.path.join(test_dir, 'noplag'))
 
-# Copiar los archivos de plagio al conjunto de test
-for file in plagio_files[train_size:train_size + test_size]:
-    shutil.copy(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'test', 'plagio', file))
-
-# Copiar los archivos de plagio al conjunto de validation
-for file in plagio_files[train_size + test_size:]:
-    shutil.copy(os.path.join(plagio_folder, file), os.path.join(data_split_folder, 'validation', 'plagio', file))
-
-# Copiar los archivos de no plagio al conjunto de train
-for file in noplag_files[:train_size]:
-    shutil.copy(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'train', 'noplag', file))
-
-# Copiar los archivos de no plagio al conjunto de test
-for file in noplag_files[train_size:train_size + test_size]:
-    shutil.copy(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'test', 'noplag', file))
-
-# Copiar los archivos de no plagio al conjunto de validation
-for file in noplag_files[train_size + test_size:]:
-    shutil.copy(os.path.join(noplag_folder, file), os.path.join(data_split_folder, 'validation', 'noplag', file))
-
-print("Proceso completado.")
+print("Los documentos se han copiado y distribuido en la nueva estructura de directorios.")
