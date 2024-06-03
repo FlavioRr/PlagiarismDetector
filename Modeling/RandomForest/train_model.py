@@ -1,41 +1,38 @@
 import joblib
+from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
-from sklearn.metrics import accuracy_score, classification_report
+from sklearn.metrics import accuracy_score, log_loss, classification_report
 
-def train_model():
+def train_random_forest():
     # Cargar los datos preprocesados
-    X_train, y_train, X_test, y_test = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data_doc2vec.pkl')
+    X, y, tfidf_vectorizer = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data.pkl')
 
-    # Definir el modelo
-    model = RandomForestClassifier(random_state=42)
+    # Dividir los datos en conjuntos de entrenamiento y prueba
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # Definir los parámetros para el grid search
-    param_grid = {
-        'n_estimators': [100, 200, 300],
-        'max_depth': [None, 10, 20, 30],
-        'min_samples_split': [2, 5, 10],
-        'min_samples_leaf': [1, 2, 4]
-    }
+    # Entrenar un modelo de Random Forest
+    rf_model = RandomForestClassifier(n_estimators=2000, max_depth=8, random_state=42)  # You can tune these parameters
+    rf_model.fit(X_train, y_train)
 
-    # Configurar GridSearchCV para encontrar los mejores hiperparámetros
-    grid_search = GridSearchCV(estimator=model, param_grid=param_grid, cv=5, n_jobs=-1, verbose=2, scoring='accuracy')
+    # Evaluar el modelo en el conjunto de entrenamiento
+    train_preds = rf_model.predict(X_train)
+    train_accuracy = accuracy_score(y_train, train_preds)
+    train_loss = log_loss(y_train, rf_model.predict_proba(X_train))
 
-    # Ajustar el grid search al conjunto de entrenamiento balanceado
-    grid_search.fit(X_train, y_train)
+    print(f"Train Accuracy: {train_accuracy * 100:.2f}%")
+    print(f"Train Loss: {train_loss:.4f}")
 
-    # Mejor conjunto de hiperparámetros
-    print(f"Mejores parámetros: {grid_search.best_params_}")
+    # Evaluar el modelo en el conjunto de prueba
+    test_preds = rf_model.predict(X_test)
+    test_accuracy = accuracy_score(y_test, test_preds)
+    test_loss = log_loss(y_test, rf_model.predict_proba(X_test))
 
-    # Evaluar el mejor modelo encontrado por GridSearchCV
-    best_model = grid_search.best_estimator_
-    y_pred = best_model.predict(X_test)
-    accuracy = accuracy_score(y_test, y_pred)
-    print(f"Accuracy: {accuracy:.4f}")
-    print(classification_report(y_test, y_pred))
+    print(f"Test Accuracy: {test_accuracy * 100:.2f}%")
+    print(f"Test Loss: {test_loss:.4f}")
 
-    # Guardar el modelo entrenado
-    joblib.dump(best_model, r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\random_forest_model.pkl')
+    # Guardar el modelo entrenado y el vectorizador TF-IDF
+    joblib.dump((rf_model, tfidf_vectorizer), r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\random_forest_model.pkl')
 
 if __name__ == "__main__":
-    train_model()
+    train_random_forest()
+    print("Model training completed and model saved.")

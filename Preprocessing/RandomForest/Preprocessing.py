@@ -1,62 +1,80 @@
 import os
 import re
-import joblib
-#pip install gensim
+import pandas as pd
+import javalang
 from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
 
-def load_files_from_directory(directory):
-    files = []
-    labels = []
-    filenames = []
-    for root, _, filenames in os.walk(directory):
-        for filename in filenames:
-            with open(os.path.join(root, filename), 'r', encoding='utf-8') as f:
-                code = f.read()
-                # Eliminar comentarios
-                code = re.sub(r'//.*|/\*[\s\S]*?\*/', '', code)
-                # Normalizar nombres de variables (esto puede ser más complejo dependiendo del lenguaje)
-                code = re.sub(r'\b[_a-zA-Z][_a-zA-Z0-9]*\b', 'VAR', code)
-                files.append(code)
-                filenames.append(filename)
-                if 'plagio' in root:
-                    labels.append(1)
-                else:
-                    labels.append(0)
-    return files, labels, filenames
+def read_java_file(file_path):
+    """Function to read a Java file and return its content as a string."""
+    with open(file_path, 'r', encoding='utf-8') as file:
+        content = file.read()
+    return content
 
-def preprocess_data():
-    # Paths de las carpetas de datos
-    test_noplag_path = r"C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\split\test\noplag"
-    test_plagio_path = r"C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\split\test\plagio"
-    train_noplag_path = r"C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\split\train\noplag"
-    train_plagio_path = r"C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\finalDataset\split\train\plagio"
+def extract_ast_nodes(code):
+    """Extract AST nodes from Java code."""
+    try:
+        tokens = list(javalang.tokenizer.tokenize(code))
+        parser = javalang.parser.Parser(tokens)
+        tree = parser.parse()
 
-    # Cargar datos de entrenamiento y prueba
-    train_files_noplag, train_labels_noplag, _ = load_files_from_directory(train_noplag_path)
-    train_files_plagio, train_labels_plagio, _ = load_files_from_directory(train_plagio_path)
-    test_files_noplag, test_labels_noplag, test_filenames_noplag = load_files_from_directory(test_noplag_path)
-    test_files_plagio, test_labels_plagio, test_filenames_plagio = load_files_from_directory(test_plagio_path)
+        ast_nodes = []
+        for path, node in tree:
+            if isinstance(node, javalang.tree.Node):
+                ast_nodes.append(node.__class__.__name__)
+        return ' '.join(ast_nodes)
+    except (javalang.parser.JavaSyntaxError, javalang.tokenizer.LexerError) as e:
+        print(f"Error al analizar el código Java: {e}")
+        return ''
 
-    # Combinar datos de entrenamiento y prueba
-    train_files = train_files_noplag + train_files_plagio
-    train_labels = train_labels_noplag + train_labels_plagio
-    test_files = test_files_noplag + test_files_plagio
-    test_labels = test_labels_noplag + test_labels_plagio
-    test_filenames = test_filenames_noplag + test_filenames_plagio
+def preprocess_data_with_ast(directory):
+    """Preprocess all Java files in the specified directory and return a DataFrame."""
+    data = []
+    labels_path = os.path.join(directory, 'versions', 'labels.csv')  # Correct path to labels.csv
+    labels = pd.read_csv(labels_path)
+    
+    # Verificar las columnas del archivo CSV
+    print("Columnas disponibles en labels.csv:", labels.columns)
+    
+    # Asegurarse de que la columna correcta está presente
+    label_column = 'veredict'  # Cambia esto si el nombre de la columna es diferente
+    if label_column not in labels.columns:
+        raise KeyError(f"La columna '{label_column}' no se encuentra en labels.csv")
+    
+    for index, row in labels.iterrows():
+        sub1 = row['sub1']
+        sub2 = row['sub2']
+        label = row[label_column]  # Use the correct label column
+        pair_id = f"{sub1}_{sub2}"  # Construct pair_id from sub1 and sub2
+        pair_folder = os.path.join(directory, 'versions', 'version_2', pair_id)
+        
+        # Paths to the two Java files in the pair folder
+        file1_path = os.path.join(pair_folder, f"{sub1}.java")
+        file2_path = os.path.join(pair_folder, f"{sub2}.java")
+        
+        # Read and extract AST nodes from both files
+        if os.path.exists(file1_path) and os.path.exists(file2_path):
+            code1 = read_java_file(file1_path)
+            code2 = read_java_file(file2_path)
+            ast_nodes1 = extract_ast_nodes(code1)
+            ast_nodes2 = extract_ast_nodes(code2)
+            
+            if ast_nodes1 and ast_nodes2:  # Only combine if both are non-empty
+                # Combine the AST nodes from both files
+                combined_ast_nodes = ast_nodes1 + ' ' + ast_nodes2
+                data.append([combined_ast_nodes, label])
+    
+    return pd.DataFrame(data, columns=['code', 'label'])
 
-    # Vectorización con Doc2Vec
-    tagged_data = [TaggedDocument(words=file.split(), tags=[str(i)]) for i, file in enumerate(train_files)]
-    model = Doc2Vec(vector_size=100, window=5, min_count=1, workers=4, epochs=100)
-    model.build_vocab(tagged_data)
-    model.train(tagged_data, total_examples=model.corpus_count, epochs=model.epochs)
-
-    # Transformar datos de entrenamiento y prueba
-    X_train = [model.infer_vector(file.split()) for file in train_files]
-    X_test = [model.infer_vector(file.split()) for file in test_files]
-
-    # Guardar los datos preprocesados, el modelo Doc2Vec y las etiquetas
-    joblib.dump((X_train, train_labels, X_test, test_labels), r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data_doc2vec.pkl')
-    model.save(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest/doc2vec_model.d2v')
+def save_preprocessed_data(data, output_path):
+    tfidf_vectorizer = TfidfVectorizer(max_features=5000)  # You can adjust max_features as needed
+    X = tfidf_vectorizer.fit_transform(data['code'])
+    y = data['label']
+    joblib.dump((X, y, tfidf_vectorizer), output_path)
 
 if __name__ == "__main__":
-    preprocess_data()
+    data_directory = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\data\conplag_version_2'
+    processed_data = preprocess_data_with_ast(data_directory)
+    save_preprocessed_data(processed_data, r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data.pkl')
+    print("Preprocessing completed and data saved.")
