@@ -3,14 +3,14 @@ import re
 import javalang
 import numpy as np
 
+# Función para leer un archivo Java y devolver su contenido como una cadena
 def read_java_file(file_path):
-    """Function to read a Java file and return its content as a string."""
     with open(file_path, 'r', encoding='utf-8') as file:
         content = file.read()
     return content
 
+# Función para extraer nodos AST del código Java
 def extract_ast_nodes(code):
-    """Extract AST nodes from Java code."""
     try:
         tokens = list(javalang.tokenizer.tokenize(code))
         parser = javalang.parser.Parser(tokens)
@@ -25,16 +25,17 @@ def extract_ast_nodes(code):
         print(f"Error al analizar el código Java: {e}")
         return ''
 
+# Función para calcular la similitud de Jaccard entre dos conjuntos
 def jaccard_similarity(set1, set2):
-    """Compute Jaccard similarity between two sets."""
     intersection = len(set1.intersection(set2))
     union = len(set1.union(set2))
     return intersection / union if union != 0 else 0
 
+# Función para calcular la distancia de Manhattan entre dos vectores
 def manhattan_distance(v1, v2):
-    """Compute Manhattan distance between two vectors."""
     return np.sum(np.abs(v1 - v2))
 
+# Función para predecir el plagio para un nuevo par de archivos Java usando un modelo entrenado de Random Forest
 def predict_new_sample(file1_path, file2_path):
     # Cargar el modelo Random Forest y el vectorizador TF-IDF entrenado
     rf_model, tfidf_vectorizer = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\random_forest_model_with_features.pkl')
