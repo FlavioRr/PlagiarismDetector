@@ -1,6 +1,7 @@
 import joblib
 import re
 import javalang
+import numpy as np
 
 def read_java_file(file_path):
     """Function to read a Java file and return its content as a string."""
@@ -24,9 +25,19 @@ def extract_ast_nodes(code):
         print(f"Error al analizar el código Java: {e}")
         return ''
 
+def jaccard_similarity(set1, set2):
+    """Compute Jaccard similarity between two sets."""
+    intersection = len(set1.intersection(set2))
+    union = len(set1.union(set2))
+    return intersection / union if union != 0 else 0
+
+def manhattan_distance(v1, v2):
+    """Compute Manhattan distance between two vectors."""
+    return np.sum(np.abs(v1 - v2))
+
 def predict_new_sample(file1_path, file2_path):
     # Cargar el modelo Random Forest y el vectorizador TF-IDF entrenado
-    rf_model, tfidf_vectorizer = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\random_forest_model.pkl')
+    rf_model, tfidf_vectorizer = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\random_forest_model_with_features.pkl')
 
     # Leer y preprocesar las nuevas muestras de código
     code1 = read_java_file(file1_path)
@@ -39,16 +50,27 @@ def predict_new_sample(file1_path, file2_path):
         combined_ast_nodes = ast_nodes1 + ' ' + ast_nodes2
         
         # Transformar la nueva muestra usando el vectorizador TF-IDF
-        sample_vector = tfidf_vectorizer.transform([combined_ast_nodes])
+        sample_vector = tfidf_vectorizer.transform([combined_ast_nodes]).toarray()[0]
+        
+        # Calcular características adicionales
+        ast_set1 = set(ast_nodes1.split())
+        ast_set2 = set(ast_nodes2.split())
+        jaccard_sim = jaccard_similarity(ast_set1, ast_set2)
+        vec1 = tfidf_vectorizer.transform([ast_nodes1]).toarray()[0]
+        vec2 = tfidf_vectorizer.transform([ast_nodes2]).toarray()[0]
+        manhattan_dist = manhattan_distance(vec1, vec2)
+        
+        # Combinar todas las características
+        sample_vector = np.hstack((sample_vector, [manhattan_dist, jaccard_sim]))
         
         # Hacer predicciones usando el modelo Random Forest
-        prediction = rf_model.predict(sample_vector)
-        prediction_prob = rf_model.predict_proba(sample_vector)
+        prediction = rf_model.predict([sample_vector])
+        prediction_prob = rf_model.predict_proba([sample_vector])
         
         return 'Plagio' if prediction[0] == 1 else 'No Plagio', prediction_prob
     else:
         return 'Error en la extracción de nodos AST', None
-    
+
 if __name__ == "__main__":
     file1_path = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\OriginalJava.java'
     file2_path = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\PlagiarizedJava.java'

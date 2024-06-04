@@ -5,13 +5,13 @@ from sklearn.metrics import accuracy_score, log_loss, classification_report
 
 def train_random_forest():
     # Cargar los datos preprocesados
-    X, y, tfidf_vectorizer = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data.pkl')
+    X, y, tfidf_vectorizer = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data_with_features.pkl')
 
     # Dividir los datos en conjuntos de entrenamiento y prueba
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
     # Entrenar un modelo de Random Forest
-    rf_model = RandomForestClassifier(n_estimators=2000, max_depth=8, random_state=42)  # You can tune these parameters
+    rf_model = RandomForestClassifier(n_estimators=100, max_depth=8, random_state=42)  # You can tune these parameters
     rf_model.fit(X_train, y_train)
 
     # Evaluar el modelo en el conjunto de entrenamiento
@@ -31,7 +31,7 @@ def train_random_forest():
     print(f"Test Loss: {test_loss:.4f}")
 
     # Guardar el modelo entrenado y el vectorizador TF-IDF
-    joblib.dump((rf_model, tfidf_vectorizer), r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\random_forest_model.pkl')
+    joblib.dump((rf_model, tfidf_vectorizer), r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Modeling\RandomForest\random_forest_model_with_features.pkl')
 
 if __name__ == "__main__":
     train_random_forest()

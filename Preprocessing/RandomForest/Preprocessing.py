@@ -2,9 +2,10 @@ import os
 import re
 import pandas as pd
 import javalang
-from gensim.models.doc2vec import Doc2Vec, TaggedDocument
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import pairwise_distances
 import joblib
+import numpy as np
 
 def read_java_file(file_path):
     """Function to read a Java file and return its content as a string."""
@@ -27,6 +28,16 @@ def extract_ast_nodes(code):
     except (javalang.parser.JavaSyntaxError, javalang.tokenizer.LexerError) as e:
         print(f"Error al analizar el código Java: {e}")
         return ''
+
+def jaccard_similarity(set1, set2):
+    """Compute Jaccard similarity between two sets."""
+    intersection = len(set1.intersection(set2))
+    union = len(set1.union(set2))
+    return intersection / union if union != 0 else 0
+
+def manhattan_distance(v1, v2):
+    """Compute Manhattan distance between two vectors."""
+    return np.sum(np.abs(v1 - v2))
 
 def preprocess_data_with_ast(directory):
     """Preprocess all Java files in the specified directory and return a DataFrame."""
@@ -63,18 +74,36 @@ def preprocess_data_with_ast(directory):
             if ast_nodes1 and ast_nodes2:  # Only combine if both are non-empty
                 # Combine the AST nodes from both files
                 combined_ast_nodes = ast_nodes1 + ' ' + ast_nodes2
-                data.append([combined_ast_nodes, label])
+                data.append([combined_ast_nodes, label, ast_nodes1, ast_nodes2])
     
-    return pd.DataFrame(data, columns=['code', 'label'])
+    return pd.DataFrame(data, columns=['code', 'label', 'ast_nodes1', 'ast_nodes2'])
 
 def save_preprocessed_data(data, output_path):
     tfidf_vectorizer = TfidfVectorizer(max_features=5000)  # You can adjust max_features as needed
     X = tfidf_vectorizer.fit_transform(data['code'])
     y = data['label']
-    joblib.dump((X, y, tfidf_vectorizer), output_path)
+    
+    # Compute additional features
+    manhattan_distances = []
+    jaccard_similarities = []
+
+    for _, row in data.iterrows():
+        ast_set1 = set(row['ast_nodes1'].split())
+        ast_set2 = set(row['ast_nodes2'].split())
+        jaccard_similarities.append(jaccard_similarity(ast_set1, ast_set2))
+        
+        vec1 = tfidf_vectorizer.transform([row['ast_nodes1']]).toarray()[0]
+        vec2 = tfidf_vectorizer.transform([row['ast_nodes2']]).toarray()[0]
+        manhattan_distances.append(manhattan_distance(vec1, vec2))
+    
+    # Combine features
+    X_additional = np.array([manhattan_distances, jaccard_similarities]).T
+    X_combined = np.hstack((X.toarray(), X_additional))
+    
+    joblib.dump((X_combined, y, tfidf_vectorizer), output_path)
 
 if __name__ == "__main__":
     data_directory = r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\data\conplag_version_2'
     processed_data = preprocess_data_with_ast(data_directory)
-    save_preprocessed_data(processed_data, r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data.pkl')
+    save_preprocessed_data(processed_data, r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data_with_features.pkl')
     print("Preprocessing completed and data saved.")
