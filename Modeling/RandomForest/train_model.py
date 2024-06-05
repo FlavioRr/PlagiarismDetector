@@ -9,7 +9,7 @@ import pandas as pd
 # Función para entrenar un modelo de Random Forest utilizando datos preprocesados y guardar el modelo
 def train_random_forest():
     # Cargar los datos preprocesados
-    X, y, tfidf_vectorizer = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\RandomForest\preprocessed_data_with_features.pkl')
+    X, y, tfidf_vectorizer = joblib.load(r'C:\Users\Flavio Ruvalcaba\Documents\Escuela\Universidad\8Semestre\PlagiarismDetector\Preprocessing\preprocessed_all_data.pkl')
 
     # Dividir los datos en conjuntos de entrenamiento y prueba
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
